@@ -61,6 +61,16 @@ let
         ] (_: null)
       );
 
+  # https://github.com/NixOS/nix/pull/15638
+  avDarwin = python312.pkgs.av.overrideAttrs {
+    dontUsePytestCheck = true;
+    dontUsePythonImportsCheck = true;
+  };
+
+  fasterWhisperDarwin = (python312.pkgs.faster-whisper.override { av = avDarwin; }).overrideAttrs {
+    dontUsePythonImportsCheck = true;
+  };
+
   pythonPackageOverrides =
     final: _prev:
     if isAarch64Darwin then
@@ -69,7 +79,7 @@ let
 
         pyarrow = mkPrebuiltOverride final python312.pkgs.pyarrow { };
 
-        av = mkPrebuiltOverride final python312.pkgs.av { };
+        av = mkPrebuiltOverride final avDarwin { };
 
         humanfriendly = mkPrebuiltOverride final python312.pkgs.humanfriendly { };
 
@@ -88,7 +98,7 @@ let
           pyyaml = [ ];
         };
 
-        faster-whisper = mkPrebuiltOverride final python312.pkgs.faster-whisper {
+        faster-whisper = mkPrebuiltOverride final fasterWhisperDarwin {
           av = [ ];
           ctranslate2 = [ ];
           huggingface-hub = [ ];
